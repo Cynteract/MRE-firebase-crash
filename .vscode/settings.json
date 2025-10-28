@@ -36,7 +36,6 @@
         "**/*.MA": true,
         "**/*.obj": true,
         "**/*.OBJ": true,
-        "**/*.asset": true,
         "**/*.cubemap": true,
         "**/*.flare": true,
         "**/*.mat": true,
@@ -51,8 +50,6 @@
         "Obj/": true,
         "Logs/": true,
         "logs/": true,
-        "ProjectSettings/": true,
-        "UserSettings/": true,
         "temp/": true,
         "Temp/": true
     },

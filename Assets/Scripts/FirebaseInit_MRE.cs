@@ -23,6 +23,9 @@ public static class AsyncHelper
 
 public class FirebaseInit_MRE : MonoBehaviour
 {
+    private FirebaseApp app = null;
+    private FirebaseAuth auth = null;
+    private FirebaseFirestore firestore = null;
     void Start()
     {
         string appVersion = Application.version;
@@ -49,16 +52,19 @@ public class FirebaseInit_MRE : MonoBehaviour
     private async Task InitFirebaseAsync()
     {
         await FirebaseApp.CheckAndFixDependenciesAsync();
-        FirebaseFirestore.DefaultInstance.Settings.PersistenceEnabled = true;
+        app = FirebaseApp.DefaultInstance;
+        auth = FirebaseAuth.DefaultInstance;
+        firestore = FirebaseFirestore.DefaultInstance;
+        firestore.Settings.PersistenceEnabled = true;
         Debug.Log("Firebase Initialization successful");
-        var user = FirebaseAuth.DefaultInstance.CurrentUser;
+        var user = auth.CurrentUser;
         Debug.Log("Current user: " + (user != null ? user.Email : "None"));
     }
 
     private async Task ClearAsync()
     {
-        await FirebaseFirestore.DefaultInstance.TerminateAsync();
-        await FirebaseFirestore.DefaultInstance.ClearPersistenceAsync();
+        await firestore.TerminateAsync();
+        await firestore.ClearPersistenceAsync();
         Debug.Log("Firestore persistence cleared.");
     }
 
@@ -69,9 +75,6 @@ public class FirebaseInit_MRE : MonoBehaviour
     }
     private async Task LoginAsync()
     {
-        var auth = FirebaseAuth.DefaultInstance;
-        // Read credentials from StreamingAssets/credentials.json
-
         string credentialsPath = System.IO.Path.Combine(Application.streamingAssetsPath, "credentials.json");
         string credentialsJson = await System.IO.File.ReadAllTextAsync(credentialsPath);
         var credentials = JsonUtility.FromJson<Credentials>(credentialsJson);
@@ -82,17 +85,24 @@ public class FirebaseInit_MRE : MonoBehaviour
 
     private async Task LogoutAsync()
     {
-        FirebaseAuth.DefaultInstance.SignOut();
-        var user = FirebaseAuth.DefaultInstance.CurrentUser;
+        auth.SignOut();
+        var user = auth.CurrentUser;
         Debug.Log("Current user: " + (user != null ? user.Email : "None"));
     }
 
     private async Task GetDocumentAsync()
     {
-        var user = FirebaseAuth.DefaultInstance.CurrentUser;
+        var user = auth.CurrentUser;
         Debug.Log("Current user: " + (user != null ? user.Email : "None"));
         Debug.Log("User ID: " + user.UserId);
-        await FirebaseFirestore.DefaultInstance.Collection("User").Document(user.UserId).GetSnapshotAsync();
+        await Task.Delay(500);
+        var collection = firestore.Collection("User");
+        Debug.Log("Collection reference obtained.");
+        await Task.Delay(500);
+        var document = collection.Document(user.UserId);
+        Debug.Log("Document reference obtained.");
+        await Task.Delay(500);
+        var snapshot = await document.GetSnapshotAsync();
         Debug.Log("Document retrieved successfully.");
     }
 }
