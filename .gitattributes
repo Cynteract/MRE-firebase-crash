@@ -1,0 +1,6 @@
+# Unity's serializer is using LF for line endings
+*          text=auto eol=lf
+
+# EDM4U uses platform-specific line endings for AndroidResolverDependencies.xml
+# see https://github.com/googlesamples/unity-jar-resolver/issues/755
+ProjectSettings/AndroidResolverDependencies.xml text -eol
