@@ -31,7 +31,7 @@ public class FirebaseInit_MRE : MonoBehaviour
     private Button deleteFirebaseHeartbeatFolderButton, deleteFirestoreLogsAndConfigsButton, deleteFirestoreFolderButton;
 
     [SerializeField]
-    private Button initButton, clearButton, loginButton, logoutButton, getDocumentButton;
+    private Button initWithLocalPersistenceButton, initOnlineOnlyButton, clearButton, loginButton, logoutButton, getDocumentButton;
 
     private void Awake()
     {
@@ -39,7 +39,8 @@ public class FirebaseInit_MRE : MonoBehaviour
         deleteFirestoreFolderButton.onClick.AddListener(DeleteFirestoreFolder);
         deleteFirestoreLogsAndConfigsButton.onClick.AddListener(DeleteFirebaseLogsAndConfigs);
 
-        initButton.onClick.AddListener(() => InitFirebaseAsync().Forget("Could not resolve all Firebase dependencies"));
+        initWithLocalPersistenceButton.onClick.AddListener(() => InitFirebaseAsync(true).Forget("Could not resolve all Firebase dependencies"));
+        initOnlineOnlyButton.onClick.AddListener(() => InitFirebaseAsync(false).Forget("Could not resolve all Firebase dependencies"));
         clearButton.onClick.AddListener(() => ClearAsync().Forget("Error during sign out"));
         loginButton.onClick.AddListener(() => LoginAsync().Forget("Error during sign in"));
         logoutButton.onClick.AddListener(() => LogoutAsync().Forget("Error during sign out"));
@@ -52,14 +53,13 @@ public class FirebaseInit_MRE : MonoBehaviour
         string appVersion = Application.version;
         Debug.Log("App version: " + appVersion);
     }
-
-    private async Task InitFirebaseAsync()
+    private async Task InitFirebaseAsync(bool persistenceEnabled)
     {
         await FirebaseApp.CheckAndFixDependenciesAsync();
         app = FirebaseApp.DefaultInstance;
         auth = FirebaseAuth.DefaultInstance;
         firestore = FirebaseFirestore.DefaultInstance;
-        firestore.Settings.PersistenceEnabled = true;
+        firestore.Settings.PersistenceEnabled = persistenceEnabled;
         Debug.Log("Firebase Initialization successful");
         var user = auth.CurrentUser;
         Debug.Log("Current user: " + (user != null ? user.Email : "None"));
