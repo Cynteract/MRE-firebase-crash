@@ -1,10 +1,11 @@
-using System;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UI;
 using Firebase;
 using Firebase.Auth;
 using Firebase.Firestore;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.UI;
 
 public static class AsyncHelper
 {
@@ -26,27 +27,30 @@ public class FirebaseInit_MRE : MonoBehaviour
     private FirebaseApp app = null;
     private FirebaseAuth auth = null;
     private FirebaseFirestore firestore = null;
+    [SerializeField]
+    private Button deleteFirebaseHeartbeatFolderButton, deleteFirestoreLogsAndConfigsButton, deleteFirestoreFolderButton;
+
+    [SerializeField]
+    private Button initButton, clearButton, loginButton, logoutButton, getDocumentButton;
+
+    private void Awake()
+    {
+        deleteFirebaseHeartbeatFolderButton.onClick.AddListener(DeleteFirebaseHearbeatFolder);
+        deleteFirestoreFolderButton.onClick.AddListener(DeleteFirestoreFolder);
+        deleteFirestoreLogsAndConfigsButton.onClick.AddListener(DeleteFirebaseLogsAndConfigs);
+
+        initButton.onClick.AddListener(() => InitFirebaseAsync().Forget("Could not resolve all Firebase dependencies"));
+        clearButton.onClick.AddListener(() => ClearAsync().Forget("Error during sign out"));
+        loginButton.onClick.AddListener(() => LoginAsync().Forget("Error during sign in"));
+        logoutButton.onClick.AddListener(() => LogoutAsync().Forget("Error during sign out"));
+        getDocumentButton.onClick.AddListener(() => GetDocumentAsync().Forget("Error getting document"));
+
+
+    }
     void Start()
     {
         string appVersion = Application.version;
         Debug.Log("App version: " + appVersion);
-
-        // Get all Button components in the active scene (including inactive)
-        var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-        var rootObjects = scene.GetRootGameObjects();
-        var buttons = new System.Collections.Generic.List<Button>();
-        foreach (var root in rootObjects)
-        {
-            buttons.AddRange(root.GetComponentsInChildren<Button>(true));
-        }
-        // Ensure exactly 5 buttons were found
-        UnityEngine.Assertions.Assert.AreEqual(5, buttons.Count, $"Expected 5 buttons in scene but found {buttons.Count}.");
-
-        buttons[0].onClick.AddListener(() => InitFirebaseAsync().Forget("Could not resolve all Firebase dependencies"));
-        buttons[1].onClick.AddListener(() => ClearAsync().Forget("Error during sign out"));
-        buttons[2].onClick.AddListener(() => LoginAsync().Forget("Error during sign in"));
-        buttons[3].onClick.AddListener(() => LogoutAsync().Forget("Error during sign out"));
-        buttons[4].onClick.AddListener(() => GetDocumentAsync().Forget("Error getting document"));
     }
 
     private async Task InitFirebaseAsync()
@@ -104,5 +108,65 @@ public class FirebaseInit_MRE : MonoBehaviour
         await Task.Delay(500);
         var snapshot = await document.GetSnapshotAsync();
         Debug.Log("Document retrieved successfully.");
+    }
+    private string GetLocalAppdataPath()
+    {
+        return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    }
+    private void DeleteFirebaseHearbeatFolder()
+    {
+        string path = Path.Combine(GetLocalAppdataPath(), "firebase-heartbeat");
+        if (Directory.Exists(path))
+        {
+
+            Directory.Delete(path, true);
+            Debug.Log($"Directory deleted: {path}");
+
+
+        }
+        else
+        {
+            Debug.Log($"Directory not found: {path}");
+        }
+    }
+    private void DeleteFirebaseLogsAndConfigs()
+    {
+        string path = Path.Combine(GetLocalAppdataPath(), "firestore", "__FIRAPP_DEFAULT", "cynteract-a52e4", "main");
+        var files = Directory.GetFiles(path);
+        if (files.Length == 0)
+        {
+            print("No files found");
+        }
+        foreach (var filePath in files)
+        {
+            var extension = Path.GetExtension(filePath);
+            if (extension == ".ldb")
+            {
+                print($"Skipping database file: {filePath}");
+                continue;
+            }
+            else
+            {
+                print($"Deleted file: {filePath}");
+
+            }
+        }
+
+    }
+    private void DeleteFirestoreFolder()
+    {
+        string path = Path.Combine(GetLocalAppdataPath(), "firestore");
+        if (Directory.Exists(path))
+        {
+
+            Directory.Delete(path, true);
+            Debug.Log($"Directory deleted: {path}");
+
+
+        }
+        else
+        {
+            Debug.Log($"Directory not found: {path}");
+        }
     }
 }
